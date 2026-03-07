@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, nome, email, unidade, role (morador, sindico)
+    //
+    // Collection: solicitacoes
+    // Fields: titulo, descricao, status, data, moradorId, moradorNome, unidade
+    //
+    // Collection: reservas
+    // Fields: area, data, horario, moradorId, moradorNome, unidade
+    //
+    // Collection: votacoes
+    // Fields: titulo, descricao, opcoes, votos (map), ativa, dataCriacao
+    //
+    // Collection: documentos
+    // Fields: titulo, descricao, categoria, url, data
+    //
+    // Collection: avisos
+    // Fields: conteudo, data, autor
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sindico' ||
+          (request.auth.token.email == "solucoesapsilva@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'nome', 'email', 'unidade', 'role']) &&
+             data.uid is string && data.nome is string && data.nome.size() > 0 &&
+             isValidEmail(data.email) &&
+             data.role in ['morador', 'sindico'];
+    }
+
+    function isValidSolicitacao(data) {
+      return hasOnlyAllowedFields(['titulo', 'descricao', 'status', 'data', 'moradorId', 'moradorNome', 'unidade']) &&
+             data.titulo is string && data.titulo.size() > 0 && data.titulo.size() < 200 &&
+             data.descricao is string && data.descricao.size() > 0 && data.descricao.size() < 2000 &&
+             data.status in ['Pendente', 'Em Análise', 'Concluído'] &&
+             data.moradorId == request.auth.uid;
+    }
+
+    function isValidReserva(data) {
+      return hasOnlyAllowedFields(['area', 'data', 'horario', 'moradorId', 'moradorNome', 'unidade']) &&
+             data.area is string && data.data is string && data.horario is string &&
+             data.moradorId == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role));
+    }
+
+    match /solicitacoes/{solicitacaoId} {
+      allow read: if isAuthenticated() && (resource.data.moradorId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidSolicitacao(request.resource.data);
+      allow update: if isAuthenticated() && (isAdmin() || (resource.data.moradorId == request.auth.uid && request.resource.data.status == resource.data.status));
+      allow delete: if isAdmin();
+    }
+
+    match /reservas/{reservaId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidReserva(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (resource.data.moradorId == request.auth.uid);
+    }
+
+    match /votacoes/{votacaoId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+      // Allow users to vote
+      allow update: if isAuthenticated() && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votos']) &&
+                    request.resource.data.votos.keys().hasAll(resource.data.votos.keys()) &&
+                    request.resource.data.votos[request.auth.uid] is string;
+    }
+
+    match /documentos/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /avisos/{avisoId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "Solicitacao": {
+      "title": "Solicitação",
+      "description": "Uma solicitação ou reclamação enviada por um morador.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titulo": { "type": "string" },
+        "descricao": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pendente", "Em Análise", "Concluído"] },
+        "data": { "type": "string", "format": "date-time" },
+        "moradorId": { "type": "string" },
+        "moradorNome": { "type": "string" },
+        "unidade": { "type": "string" }
+      },
+      "required": ["titulo", "descricao", "status", "data", "moradorId"]
+    },
+    "Reserva": {
+      "title": "Reserva",
+      "description": "Uma reserva de área comum.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "area": { "type": "string" },
+        "data": { "type": "string", "format": "date" },
+        "horario": { "type": "string" },
+        "moradorId": { "type": "string" },
+        "moradorNome": { "type": "string" },
+        "unidade": { "type": "string" }
+      },
+      "required": ["area", "data", "horario", "moradorId"]
+    },
+    "Votacao": {
+      "title": "Votação",
+      "description": "Uma assembleia ou votação ativa.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titulo": { "type": "string" },
+        "descricao": { "type": "string" },
+        "opcoes": { 
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "votos": {
+          "type": "object",
+          "description": "Mapa de userId -> opcaoSelecionada"
+        },
+        "ativa": { "type": "boolean" },
+        "dataCriacao": { "type": "string", "format": "date-time" }
+      },
+      "required": ["titulo", "opcoes", "ativa"]
+    },
+    "Documento": {
+      "title": "Documento",
+      "description": "Documentos do condomínio (Atas, Regimentos, etc).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titulo": { "type": "string" },
+        "descricao": { "type": "string" },
+        "categoria": { "type": "string" },
+        "url": { "type": "string" },
+        "data": { "type": "string", "format": "date" }
+      },
+      "required": ["titulo", "categoria", "url"]
+    },
+    "User": {
+      "title": "Usuário",
+      "description": "Perfil do usuário morador ou síndico.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "nome": { "type": "string" },
+        "email": { "type": "string" },
+        "unidade": { "type": "string" },
+        "role": { "type": "string", "enum": ["morador", "sindico"] }
+      },
+      "required": ["uid", "nome", "email", "role"]
+    },
+    "Aviso": {
+      "title": "Aviso",
+      "description": "Avisos publicados pelo síndico no mural.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "conteudo": { "type": "string" },
+        "data": { "type": "string", "format": "date-time" },
+        "autor": { "type": "string" }
+      },
+      "required": ["conteudo", "data", "autor"]
+    }
+  },
+  "firestore": {
+    "/solicitacoes": {
+      "schema": "Solicitacao",
+      "description": "Coleção de solicitações dos moradores."
+    },
+    "/reservas": {
+      "schema": "Reserva",
+      "description": "Coleção de reservas de áreas comuns."
+    },
+    "/votacoes": {
+      "schema": "Votacao",
+      "description": "Coleção de votações e assembleias."
+    },
+    "/documentos": {
+      "schema": "Documento",
+      "description": "Coleção de documentos oficiais."
+    },
+    "/users": {
+      "schema": "User",
+      "description": "Coleção de perfis de usuários."
+    },
+    "/avisos": {
+      "schema": "Aviso",
+      "description": "Coleção de avisos do mural."
+    }
+  }
+}

@@ -1,0 +1,69 @@
+/* ==========================================
+   ESTILOS GERAIS (General Styles)
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-condo-primary: #2d6a4f;
+  --color-condo-secondary: #1b4332;
+  --color-condo-accent: #d8f3dc;
+  --color-condo-bg: #f8fafc;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-condo-bg text-slate-900 font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+}
+
+/* Componentes e Utilitários */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
+}
+
+.input-field {
+  @apply w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-condo-primary focus:ring-2 focus:ring-condo-primary/20 transition-all outline-none bg-white;
+}
+
+.btn-primary {
+  @apply w-full py-3.5 px-6 bg-condo-primary hover:bg-condo-secondary text-white font-semibold rounded-xl transition-all shadow-md shadow-condo-primary/20 active:scale-[0.98];
+}
+
+.btn-secondary {
+  @apply py-2 px-4 bg-white border border-slate-200 hover:border-condo-primary hover:text-condo-primary text-slate-600 font-medium rounded-lg transition-all active:scale-[0.98];
+}
+
+/* ==========================================
+   ESTILOS RESPONSIVOS (Responsive Styles)
+   ========================================== */
+@layer utilities {
+  /* Ajustes finos para mobile */
+  @media (max-width: 640px) {
+    .container-padding {
+      @apply px-4 py-6;
+    }
+    
+    .mobile-grid {
+      @apply grid-cols-1 gap-4;
+    }
+  }
+  
+  /* Ajustes para desktop */
+  @media (min-width: 1024px) {
+    .desktop-sidebar-width {
+      @apply w-64;
+    }
+  }
+}
