@@ -1,10 +1,10 @@
 {
-  "apiKey": "AIzaSyC093evwdI3PiHeWrmUdC8Sjj0N_NOE9yM",
-  "authDomain": "condoconnect-1ac26.firebaseapp.com",
-  "projectId": "condoconnect-1ac26",
-  "storageBucket": "condoconnect-1ac26.firebasestorage.app",
-  "messagingSenderId": "946552192881",
-  "appId": "1:946552192881:web:3fc11ab21b48ec9fa0c0d0",
-  "measurementId": "G-DJTLQWKJRT",
-  "firestoreDatabaseId": "(default)"
+  "projectId": "gen-lang-client-0662517987",
+  "appId": "1:332977185118:web:6b715f1223da29f4d4afcf",
+  "apiKey": "AIzaSyB1dChYnPDDIDYURCliTLK_Tj5cGPE2JE4",
+  "authDomain": "gen-lang-client-0662517987.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-d73f63f7-ac67-4424-9c91-08cc6232717c",
+  "storageBucket": "gen-lang-client-0662517987.firebasestorage.app",
+  "messagingSenderId": "332977185118",
+  "measurementId": ""
 }

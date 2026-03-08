@@ -27,7 +27,8 @@
         "horario": { "type": "string" },
         "moradorId": { "type": "string" },
         "moradorNome": { "type": "string" },
-        "unidade": { "type": "string" }
+        "unidade": { "type": "string" },
+        "status": { "type": "string", "enum": ["confirmada", "cancelada"] }
       },
       "required": ["area", "data", "horario", "moradorId"]
     },
@@ -75,6 +76,7 @@
         "nome": { "type": "string" },
         "email": { "type": "string" },
         "unidade": { "type": "string" },
+        "cargo": { "type": "string" },
         "role": { "type": "string", "enum": ["morador", "sindico"] }
       },
       "required": ["uid", "nome", "email", "role"]
@@ -90,6 +92,18 @@
         "autor": { "type": "string" }
       },
       "required": ["conteudo", "data", "autor"]
+    },
+    "Config": {
+      "title": "Configuração",
+      "description": "Configurações globais do condomínio.",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string" },
+        "administrador": { "type": "string" },
+        "emailSuporte": { "type": "string" },
+        "logoURL": { "type": "string" }
+      },
+      "required": ["nome", "administrador", "emailSuporte"]
     }
   },
   "firestore": {
@@ -116,6 +130,14 @@
     "/avisos": {
       "schema": "Aviso",
       "description": "Coleção de avisos do mural."
+    },
+    "/configuracoes": {
+      "schema": "Config",
+      "description": "Configurações globais do condomínio."
+    },
+    "/test/connection": {
+      "schema": { "type": "object", "properties": {} },
+      "description": "Documento para teste de conexão."
     }
   }
 }

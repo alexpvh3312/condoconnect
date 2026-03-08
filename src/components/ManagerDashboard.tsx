@@ -42,14 +42,14 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
 
   useEffect(() => {
     // Fetch pending requests
-    const qRequests = query(collection(db, 'solicitacoes'), where('status', '==', 'pending'));
+    const qRequests = query(collection(db, 'solicitacoes'), where('status', '==', 'Pendente'));
     const unsubscribeRequests = onSnapshot(qRequests, (snapshot) => {
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
-        resident: doc.data().userName,
-        unit: doc.data().userUnit,
-        type: doc.data().categoria,
-        date: new Date(doc.data().dataCriacao).toLocaleDateString('pt-BR'),
+        resident: doc.data().moradorNome,
+        unit: doc.data().unidade,
+        type: doc.data().titulo,
+        date: new Date(doc.data().data).toLocaleDateString('pt-BR'),
         status: doc.data().status
       })) as Request[];
       setRequests(items);
@@ -82,7 +82,7 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
     return () => unsubscribeRequests();
   }, []);
 
-  const handleAction = async (id: string, status: 'approved' | 'rejected') => {
+  const handleAction = async (id: string, status: 'Concluído' | 'Em Análise') => {
     try {
       const docRef = doc(db, 'solicitacoes', id);
       await updateDoc(docRef, { status });
@@ -232,14 +232,14 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
                           <td className="px-4 md:px-6 py-3 md:py-4 text-right">
                             <div className="flex justify-end gap-1 md:gap-2">
                               <button 
-                                onClick={() => handleAction(req.id, 'approved')}
+                                onClick={() => handleAction(req.id, 'Concluído')}
                                 className="p-1.5 md:p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                                 title="Aprovar"
                               >
                                 <CheckCircle2 size={16} className="md:w-[18px] md:h-[18px]" />
                               </button>
                               <button 
-                                onClick={() => handleAction(req.id, 'rejected')}
+                                onClick={() => handleAction(req.id, 'Em Análise')}
                                 className="p-1.5 md:p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                                 title="Rejeitar"
                               >

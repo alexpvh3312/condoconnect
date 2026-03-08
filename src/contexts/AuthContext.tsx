@@ -26,13 +26,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(userDoc.data());
         } else {
           // Create default profile for new user
-          const newProfile = {
-            uid: user.uid,
-            nome: user.displayName || 'Morador',
-            email: user.email,
-            unidade: '',
-            role: user.email === 'solucoesapsilva@gmail.com' ? 'sindico' : 'morador'
-          };
+            const newProfile = {
+              uid: user.uid,
+              nome: user.displayName || 'Morador',
+              email: user.email,
+              unidade: '',
+              cargo: user.email === 'solucoesapsilva@gmail.com' ? 'Desenvolvedor / Administrador' : '',
+              role: user.email === 'solucoesapsilva@gmail.com' ? 'sindico' : 'morador'
+            };
           await setDoc(doc(db, 'users', user.uid), newProfile);
           setProfile(newProfile);
         }

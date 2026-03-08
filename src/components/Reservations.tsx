@@ -66,7 +66,8 @@ export default function Reservations() {
         horario: formData.time,
         moradorId: user.uid,
         moradorNome: profile.nome,
-        unidade: profile.unidade || 'Não informada'
+        unidade: profile.unidade || 'Não informada',
+        status: 'confirmada'
       });
 
       setIsSubmitted(true);

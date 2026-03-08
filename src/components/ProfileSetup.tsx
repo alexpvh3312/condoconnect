@@ -8,6 +8,7 @@ export default function ProfileSetup() {
   const { user, profile } = useAuth();
   const [nome, setNome] = useState('');
   const [unidade, setUnidade] = useState('');
+  const [cargo, setCargo] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +17,7 @@ export default function ProfileSetup() {
     if (profile) {
       setNome(profile.nome || '');
       setUnidade(profile.unidade || '');
+      setCargo(profile.cargo || '');
     }
   }, [profile]);
 
@@ -31,6 +33,7 @@ export default function ProfileSetup() {
       await updateDoc(doc(db, 'users', user.uid), {
         nome,
         unidade,
+        cargo,
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -56,7 +59,7 @@ export default function ProfileSetup() {
           </div>
           <div>
             <h3 className="text-xl font-bold">{profile?.nome || 'Morador'}</h3>
-            <p className="text-white/70 text-sm">{profile?.email}</p>
+            <p className="text-white/70 text-sm">{profile?.cargo || profile?.email}</p>
             <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-white/10 rounded-lg text-[10px] font-bold uppercase tracking-wider">
               <Shield size={12} />
               {profile?.role === 'sindico' ? 'Administrador / Síndico' : 'Morador'}
@@ -95,10 +98,23 @@ export default function ProfileSetup() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">
-              <Mail size={14} /> E-mail (Somente Leitura)
-            </label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">
+                <Shield size={14} /> Cargo / Função
+              </label>
+              <input 
+                type="text" 
+                value={cargo}
+                onChange={(e) => setCargo(e.target.value)}
+                placeholder="Ex: Desenvolvedor / Administrador" 
+                className="input-field"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">
+                <Mail size={14} /> E-mail (Somente Leitura)
+              </label>
             <input 
               type="email" 
               value={profile?.email || ''} 

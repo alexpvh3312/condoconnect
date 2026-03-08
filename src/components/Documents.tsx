@@ -89,13 +89,13 @@ export default function Documents() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Documents Section */}
-        <div className="lg:col-span-2 space-y-6">
+        <div id="documentos" className="lg:col-span-2 space-y-6">
           <div className="flex items-center gap-2 mb-2">
             <FileText className="text-condo-primary" size={24} />
             <h3 className="text-xl font-bold text-slate-800">Documentos do Condomínio</h3>
           </div>
           
-          <div className="grid grid-cols-1 gap-4">
+          <div id="lista-documentos" className="grid grid-cols-1 gap-4">
             {loading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-condo-primary"></div>
@@ -118,8 +118,8 @@ export default function Documents() {
                       <FileText size={24} />
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{doc.categoria}</span>
-                      <h4 className="font-bold text-slate-800 group-hover:text-condo-primary transition-colors">{doc.titulo}</h4>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{doc.categoria || 'Geral'}</span>
+                      <h4 className="font-bold text-slate-800 group-hover:text-condo-primary transition-colors">{doc.titulo || (doc as any).nome}</h4>
                       <p className="text-xs text-slate-500">{doc.descricao}</p>
                     </div>
                   </div>

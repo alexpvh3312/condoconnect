@@ -40,7 +40,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sindico' ||
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sindico') ||
           (request.auth.token.email == "solucoesapsilva@gmail.com" && request.auth.token.email_verified == true));
     }
 
@@ -57,10 +57,11 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUser(data) {
-      return hasOnlyAllowedFields(['uid', 'nome', 'email', 'unidade', 'role']) &&
+      return hasOnlyAllowedFields(['uid', 'nome', 'email', 'unidade', 'role', 'cargo']) &&
              data.uid is string && data.nome is string && data.nome.size() > 0 &&
              isValidEmail(data.email) &&
-             data.role in ['morador', 'sindico'];
+             data.role in ['morador', 'sindico'] &&
+             (data.cargo is string || !('cargo' in data));
     }
 
     function isValidSolicitacao(data) {
@@ -72,9 +73,10 @@ service cloud.firestore {
     }
 
     function isValidReserva(data) {
-      return hasOnlyAllowedFields(['area', 'data', 'horario', 'moradorId', 'moradorNome', 'unidade']) &&
+      return hasOnlyAllowedFields(['area', 'data', 'horario', 'moradorId', 'moradorNome', 'unidade', 'status']) &&
              data.area is string && data.data is string && data.horario is string &&
-             data.moradorId == request.auth.uid;
+             data.moradorId == request.auth.uid &&
+             (data.status == 'confirmada' || !('status' in data));
     }
 
     // ===============================================================
@@ -82,7 +84,8 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isAuthenticated();
+      allow get: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
       allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin());
       allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role));
     }
@@ -119,6 +122,15 @@ service cloud.firestore {
     match /avisos/{avisoId} {
       allow read: if isAuthenticated();
       allow create, update, delete: if isAdmin();
+    }
+
+    match /configuracoes/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /test/connection {
+      allow read: if true;
     }
 
     match /{path=**} {

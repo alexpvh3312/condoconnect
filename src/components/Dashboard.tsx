@@ -9,8 +9,9 @@ import Documents from './Documents';
 import ManagerDashboard from './ManagerDashboard';
 import ProfileSetup from './ProfileSetup';
 import HostingGuide from './HostingGuide';
+import AdminSettings from './AdminSettings';
 import { useAuth } from '../contexts/AuthContext';
-import { db, collection, query, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
+import { db, collection, doc, query, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
 
 interface Notice {
   id: string;
@@ -22,7 +23,7 @@ interface Notice {
   apartment?: string;
 }
 
-type Tab = 'inicio' | 'reservas' | 'solicitacoes' | 'votacoes' | 'documentos' | 'sindico' | 'cadastro' | 'hospedagem';
+type Tab = 'inicio' | 'reservas' | 'solicitacoes' | 'votacoes' | 'documentos' | 'sindico' | 'cadastro' | 'hospedagem' | 'configuracoes';
 
 export default function Dashboard({ tab }: { tab: Tab }) {
   const { logout, isAdmin } = useAuth();
@@ -30,6 +31,21 @@ export default function Dashboard({ tab }: { tab: Tab }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [condoName, setCondoName] = useState('Residencial Verde Vida');
+  const [condoConfig, setCondoConfig] = useState<any>(null);
+
+  useEffect(() => {
+    const condoDoc = doc(db, 'configuracoes', 'condominio');
+    const unsubscribe = onSnapshot(condoDoc, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setCondoName(data.nome);
+        setCondoConfig(data);
+        document.title = `${data.nome} - Seu condomínio na palma da mão`;
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, 'avisos'), orderBy('data', 'desc'));
@@ -72,6 +88,8 @@ export default function Dashboard({ tab }: { tab: Tab }) {
         return <ProfileSetup />;
       case 'hospedagem':
         return <HostingGuide />;
+      case 'configuracoes':
+        return <AdminSettings />;
       case 'inicio':
       default:
         return (
@@ -80,7 +98,7 @@ export default function Dashboard({ tab }: { tab: Tab }) {
               <div>
                 <div className="flex items-center gap-2 text-condo-primary font-medium mb-1">
                   <MapPin size={16} />
-                  <span className="text-xs md:text-sm uppercase tracking-wider">Residencial Verde Vida</span>
+                  <span className="text-xs md:text-sm uppercase tracking-wider">{condoName}</span>
                 </div>
                 <h2 className="text-xl md:text-3xl font-bold text-slate-900">Início</h2>
               </div>
@@ -200,7 +218,19 @@ export default function Dashboard({ tab }: { tab: Tab }) {
 
                 <div className="bg-condo-secondary p-6 rounded-2xl text-white">
                   <h4 className="font-bold mb-2">Precisa de ajuda?</h4>
-                  <p className="text-white/70 text-sm mb-4">Entre em contato com a administração diretamente pelo app.</p>
+                  <p className="text-white/70 text-sm mb-4">
+                    Entre em contato com a administração diretamente pelo app.
+                  </p>
+                  <div id="info-admin" className="space-y-2 mb-4">
+                    <p className="text-xs flex items-center gap-2">
+                      <User size={12} className="text-condo-primary" />
+                      <span className="font-medium">Síndico:</span> <span id="admin-nome">{condoConfig?.administrador || 'João Silva'}</span>
+                    </p>
+                    <p className="text-xs flex items-center gap-2">
+                      <MessageSquare size={12} className="text-condo-primary" />
+                      <span className="font-medium">E-mail:</span> <span id="suporte-email">{condoConfig?.emailSuporte || 'suporte@condominio.com'}</span>
+                    </p>
+                  </div>
                   <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg transition-colors">
                     Falar com Síndico
                   </button>
@@ -219,10 +249,14 @@ export default function Dashboard({ tab }: { tab: Tab }) {
         <div className="max-w-5xl mx-auto px-4">
           <div className="h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-condo-primary rounded-lg flex items-center justify-center text-white">
-                <Bell size={18} />
+              <div className="w-8 h-8 bg-condo-primary rounded-lg flex items-center justify-center text-white overflow-hidden">
+                {condoConfig?.logoURL ? (
+                  <img id="logo-condominio" src={condoConfig.logoURL} alt="Logo do Condomínio" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <Bell size={18} />
+                )}
               </div>
-              <span className="font-display font-bold text-lg md:text-xl text-condo-secondary">CondoConnect</span>
+              <span id="nome-condominio-header" className="font-display font-bold text-lg md:text-xl text-condo-secondary">{condoName}</span>
             </div>
             
             {/* Desktop Nav */}
@@ -232,6 +266,7 @@ export default function Dashboard({ tab }: { tab: Tab }) {
               <NavButton active={tab === 'solicitacoes'} onClick={() => handleTabChange('solicitacoes')} icon={<MessageSquare size={18} />} label="Solicitações" />
               <NavButton active={tab === 'votacoes'} onClick={() => handleTabChange('votacoes')} icon={<Vote size={18} />} label="Votações" />
               {isAdmin && <NavButton active={tab === 'sindico'} onClick={() => handleTabChange('sindico')} icon={<ShieldCheck size={18} />} label="Painel do Síndico" />}
+              {isAdmin && <NavButton active={tab === 'configuracoes'} onClick={() => handleTabChange('configuracoes')} icon={<Settings size={18} />} label="Configurações" />}
               <NavButton active={tab === 'documentos'} onClick={() => handleTabChange('documentos')} icon={<FileText size={18} />} label="Documentos" />
               {isAdmin && <NavButton active={tab === 'hospedagem'} onClick={() => handleTabChange('hospedagem')} icon={<Globe size={18} />} label="Hospedagem" />}
             </div>
@@ -275,6 +310,7 @@ export default function Dashboard({ tab }: { tab: Tab }) {
                 <MobileNavButton active={tab === 'solicitacoes'} onClick={() => handleTabChange('solicitacoes')} icon={<MessageSquare size={20} />} label="Solicitações" />
                 <MobileNavButton active={tab === 'votacoes'} onClick={() => handleTabChange('votacoes')} icon={<Vote size={20} />} label="Votações" />
                 {isAdmin && <MobileNavButton active={tab === 'sindico'} onClick={() => handleTabChange('sindico')} icon={<ShieldCheck size={20} />} label="Painel do Síndico" />}
+                {isAdmin && <MobileNavButton active={tab === 'configuracoes'} onClick={() => handleTabChange('configuracoes')} icon={<Settings size={20} />} label="Configurações" />}
                 <MobileNavButton active={tab === 'documentos'} onClick={() => handleTabChange('documentos')} icon={<FileText size={20} />} label="Documentos" />
                 <MobileNavButton active={tab === 'cadastro'} onClick={() => handleTabChange('cadastro')} icon={<Settings size={20} />} label="Meu Cadastro" />
                 {isAdmin && <MobileNavButton active={tab === 'hospedagem'} onClick={() => handleTabChange('hospedagem')} icon={<Globe size={20} />} label="Hospedagem" />}
