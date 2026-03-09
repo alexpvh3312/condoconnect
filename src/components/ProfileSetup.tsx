@@ -95,6 +95,7 @@ export default function ProfileSetup() {
                 className="input-field"
                 required
               />
+              <p className="text-[10px] text-slate-400 mt-1 italic">Use o formato: Bloco [X], Apto [Y]</p>
             </div>
           </div>
 

@@ -111,7 +111,8 @@ service cloud.firestore {
       allow update: if isAuthenticated() && 
                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votos']) &&
                     request.resource.data.votos.keys().hasAll(resource.data.votos.keys()) &&
-                    request.resource.data.votos[request.auth.uid] is string;
+                    request.resource.data.votos[request.auth.uid] is string &&
+                    !(request.auth.uid in resource.data.votos);
     }
 
     match /documentos/{docId} {

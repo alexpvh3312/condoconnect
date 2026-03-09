@@ -10,6 +10,7 @@ import ManagerDashboard from './ManagerDashboard';
 import ProfileSetup from './ProfileSetup';
 import HostingGuide from './HostingGuide';
 import AdminSettings from './AdminSettings';
+import Contact from './Contact';
 import { useAuth } from '../contexts/AuthContext';
 import { db, collection, doc, query, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
 
@@ -23,7 +24,7 @@ interface Notice {
   apartment?: string;
 }
 
-type Tab = 'inicio' | 'reservas' | 'solicitacoes' | 'votacoes' | 'documentos' | 'sindico' | 'cadastro' | 'hospedagem' | 'configuracoes';
+type Tab = 'inicio' | 'reservas' | 'solicitacoes' | 'votacoes' | 'documentos' | 'sindico' | 'cadastro' | 'hospedagem' | 'configuracoes' | 'contato';
 
 export default function Dashboard({ tab }: { tab: Tab }) {
   const { logout, isAdmin } = useAuth();
@@ -90,6 +91,8 @@ export default function Dashboard({ tab }: { tab: Tab }) {
         return <HostingGuide />;
       case 'configuracoes':
         return <AdminSettings />;
+      case 'contato':
+        return <Contact />;
       case 'inicio':
       default:
         return (
@@ -231,7 +234,10 @@ export default function Dashboard({ tab }: { tab: Tab }) {
                       <span className="font-medium">E-mail:</span> <span id="suporte-email">{condoConfig?.emailSuporte || 'suporte@condominio.com'}</span>
                     </p>
                   </div>
-                  <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg transition-colors">
+                  <button 
+                    onClick={() => handleTabChange('contato')}
+                    className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg transition-colors"
+                  >
                     Falar com Síndico
                   </button>
                 </div>

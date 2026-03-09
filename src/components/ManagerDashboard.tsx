@@ -12,7 +12,8 @@ import {
   Send,
   ArrowLeft,
   BarChart3,
-  UserPlus
+  UserPlus,
+  Clock
 } from 'lucide-react';
 import { db, collection, query, where, onSnapshot, addDoc, updateDoc, doc, getDocs, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,6 +31,7 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<Request[]>([]);
+  const [filterStatus, setFilterStatus] = useState<'Pendente' | 'Em Análise' | 'Concluído'>('Pendente');
   const [stats, setStats] = useState({
     pendingRequests: 0,
     confirmedReservations: 0,
@@ -41,8 +43,8 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch pending requests
-    const qRequests = query(collection(db, 'solicitacoes'), where('status', '==', 'Pendente'));
+    // Fetch requests based on filter
+    const qRequests = query(collection(db, 'solicitacoes'), where('status', '==', filterStatus));
     const unsubscribeRequests = onSnapshot(qRequests, (snapshot) => {
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -53,7 +55,9 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
         status: doc.data().status
       })) as Request[];
       setRequests(items);
-      setStats(prev => ({ ...prev, pendingRequests: items.length }));
+      if (filterStatus === 'Pendente') {
+        setStats(prev => ({ ...prev, pendingRequests: items.length }));
+      }
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'solicitacoes');
@@ -62,16 +66,17 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
     // Fetch other stats (simple counts for now)
     const fetchStats = async () => {
       try {
+        const pendingSnap = await getDocs(query(collection(db, 'solicitacoes'), where('status', '==', 'Pendente')));
         const reservationsSnap = await getDocs(query(collection(db, 'reservas'), where('status', '==', 'confirmada')));
         const votesSnap = await getDocs(query(collection(db, 'votacoes'), where('ativa', '==', true)));
         const usersSnap = await getDocs(collection(db, 'users'));
 
-        setStats(prev => ({
-          ...prev,
+        setStats({
+          pendingRequests: pendingSnap.size,
           confirmedReservations: reservationsSnap.size,
           activeVotes: votesSnap.size,
           registeredResidents: usersSnap.size
-        }));
+        });
       } catch (error) {
         console.error("Error fetching stats:", error);
       }
@@ -80,7 +85,7 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
     fetchStats();
 
     return () => unsubscribeRequests();
-  }, []);
+  }, [filterStatus]);
 
   const handleAction = async (id: string, status: 'Concluído' | 'Em Análise') => {
     try {
@@ -186,11 +191,26 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
           {/* Pending Requests Table */}
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="p-6 border-bottom border-slate-100 flex justify-between items-center">
+              <div className="p-6 border-bottom border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
                   <ClipboardList size={20} className="text-emerald-600" />
-                  Solicitações Pendentes
+                  Solicitações
                 </h3>
+                <div className="flex bg-slate-100 p-1 rounded-xl">
+                  {(['Pendente', 'Em Análise', 'Concluído'] as const).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setFilterStatus(status)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                        filterStatus === status 
+                          ? 'bg-white text-emerald-600 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[600px] md:min-w-full">
@@ -213,7 +233,7 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
                     ) : requests.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">
-                          Nenhuma solicitação pendente no momento.
+                          Nenhuma solicitação {filterStatus.toLowerCase()} no momento.
                         </td>
                       </tr>
                     ) : (
@@ -231,20 +251,24 @@ export default function ManagerDashboard({ onBack }: { onBack?: () => void }) {
                           <td className="px-4 md:px-6 py-3 md:py-4 text-slate-500">{req.date}</td>
                           <td className="px-4 md:px-6 py-3 md:py-4 text-right">
                             <div className="flex justify-end gap-1 md:gap-2">
-                              <button 
-                                onClick={() => handleAction(req.id, 'Concluído')}
-                                className="p-1.5 md:p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                title="Aprovar"
-                              >
-                                <CheckCircle2 size={16} className="md:w-[18px] md:h-[18px]" />
-                              </button>
-                              <button 
-                                onClick={() => handleAction(req.id, 'Em Análise')}
-                                className="p-1.5 md:p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                title="Rejeitar"
-                              >
-                                <XCircle size={16} className="md:w-[18px] md:h-[18px]" />
-                              </button>
+                              {req.status !== 'Concluído' && (
+                                <button 
+                                  onClick={() => handleAction(req.id, 'Concluído')}
+                                  className="p-1.5 md:p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                  title="Marcar como Concluído"
+                                >
+                                  <CheckCircle2 size={16} className="md:w-[18px] md:h-[18px]" />
+                                </button>
+                              )}
+                              {req.status === 'Pendente' && (
+                                <button 
+                                  onClick={() => handleAction(req.id, 'Em Análise')}
+                                  className="p-1.5 md:p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                                  title="Mover para Em Análise"
+                                >
+                                  <Clock size={16} className="md:w-[18px] md:h-[18px]" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

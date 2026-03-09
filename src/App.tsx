@@ -34,6 +34,7 @@ function AppContent() {
       <Route path="/sindico" element={<Dashboard tab="sindico" />} />
       <Route path="/cadastro" element={<Dashboard tab="cadastro" />} />
       <Route path="/hospedagem" element={<Dashboard tab="hospedagem" />} />
+      <Route path="/contato" element={<Dashboard tab="contato" />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
